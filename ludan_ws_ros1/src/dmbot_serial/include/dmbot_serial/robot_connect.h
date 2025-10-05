@@ -7,7 +7,11 @@
 #include <initializer_list>
 #include <fstream>
 #include <array>
-#include <serial/serial.h> 
+#include <unordered_map>
+#include <atomic>
+
+#include <serial/serial.h>
+#include <XmlRpcValue.h>
 
 #include <sensor_msgs/JointState.h>
 
@@ -151,7 +155,7 @@ namespace dmbot_serial
         std::thread rec_thread;
         rev_data_t Receive_Data;
 
-        ros::NodeHandle n;        
+        ros::NodeHandle n;
         ros::Publisher joint_state_pub;
         std::thread pub_thread;
         send_data_t Send_Data;
@@ -160,10 +164,14 @@ namespace dmbot_serial
         std::array<motor_data_t, NUM_MOTORS> motors;
         //=======================================================
 
+        using FeedbackParser = void (robot::*)(motor_data_t&, uint8_t*);
+
+        const std::unordered_map<std::string, FeedbackParser> feedback_parsers_;
+
     public:
         robot();
         ~robot();
-        void init_motor_serial(); 
+        void init_motor_serial();
         void get_motor_data_thread();  // 串口接收线程
 
         void fresh_cmd_motor_data(double pos, double vel,double torque, double kp,double kd,int motor_idx);
@@ -171,7 +179,7 @@ namespace dmbot_serial
 
         void get_motor_data(double &pos,double &vel,double &torque, int motor_idx);
         void publishJointStates(); 
-        
+
         void dm4310_fbdata(motor_data_t& moto,uint8_t *data);
         void dm4340_fbdata(motor_data_t& moto,uint8_t *data);
         void dm6006_fbdata(motor_data_t& moto,uint8_t *data);
@@ -180,11 +188,15 @@ namespace dmbot_serial
         void dm10010l_fbdata(motor_data_t& moto,uint8_t *data);
 
 
-        unsigned char Check_Sum(unsigned char Count_Number,unsigned char mode);      
+        unsigned char Check_Sum(unsigned char Count_Number,unsigned char mode);
         int16_t float_to_uint(float x_float, float x_min, float x_max, int bits);
         float uint_to_float(int x_int, float x_min, float x_max, int bits);
 
-        std::atomic<bool> stop_thread_ ;
+        FeedbackParser getFeedbackParser(const std::string& type) const;
+        void applyMotorDefaults();
+        void loadMotorConfiguration();
+
+        std::atomic<bool> stop_thread_{false};
   };
 }
 #endif
