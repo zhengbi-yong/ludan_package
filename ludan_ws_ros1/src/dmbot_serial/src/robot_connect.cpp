@@ -175,13 +175,16 @@ void robot::publishJointStates()
   {
       sensor_msgs::JointState joint_state_msg;
 
-      for(int i=0; i<NUM_MOTORS; i++)
-      {    
-          joint_state_msg.name.push_back(motors[i].name);                   
-         
+      for (int i = 0; i < NUM_MOTORS; ++i)
+      {
+          joint_state_msg.name.push_back(motors[i].name);
+
           joint_state_msg.position.push_back(motors[i].pos);
+          ROS_INFO_STREAM_THROTTLE(0.5, "position[" << i << "] = "
+                                            << joint_state_msg.position.back());
+
           joint_state_msg.velocity.push_back(motors[i].vel);
-          joint_state_msg.effort.push_back(motors[i].tor); 
+          joint_state_msg.effort.push_back(motors[i].tor);
       }
 
     joint_state_pub.publish(joint_state_msg);
@@ -285,6 +288,7 @@ void robot::fresh_cmd_motor_data(double pos, double vel,double torque, double kp
 void robot::get_motor_data(double &pos,double &vel,double &torque, int motor_idx)
 {//获取电机反馈的参数、力矩等
   pos = motors[motor_idx].pos;
+  ROS_INFO_STREAM_THROTTLE(0.5, "get pos[" << motor_idx << "] = " << pos);
   vel = motors[motor_idx].vel;
   torque =motors[motor_idx].tor;
 }

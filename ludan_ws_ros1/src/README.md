@@ -19,7 +19,7 @@ rostopic pub mcu_leftleg/all_joints_hjc/command_one std_msgs/Float64MultiArray "
 ## 所有电机一起
 rostopic pub -r 20 mcu_leftarm/all_joints_hjc/command_same std_msgs/Float64MultiArray "data: [1.0, 0.0, 5.0, 1.0, 0.0]"
 ## 急停
-rostopic pub -r 20 mcu_leftarm/all_joints_hjc/command_same std_msgs/Float64MultiArray "data: [0.0, 0.0, 0.0, 0.0, 0.0]"
+rostopic pub -r 20 mcu_rightleg/all_joints_hjc/command_same std_msgs/Float64MultiArray "data: [0.0, 0.0, 0.0, 0.0, 0.0]"
 ## 单个电机运动
 
 ### 速度控制 speed control
@@ -29,6 +29,8 @@ rostopic pub /all_joints_hjc/command_one std_msgs/Float64MultiArray "data: [12, 
 ### 高级控制MoveJ 
 rostopic pub mcu_leftarm/all_joints_hjc/command_moveJ std_msgs/Float64MultiArray "data: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]"
 rostopic pub mcu_rightarm/all_joints_hjc/command_moveJ std_msgs/Float64MultiArray "data: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]"
+
+rostopic pub mcu_rightarm/all_joints_hjc/command_moveJ std_msgs/Float64MultiArray "data: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]"
 rostopic pub mcu_leftleg/all_joints_hjc/command_moveJ std_msgs/Float64MultiArray "data: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]"
 rostopic pub mcu_rightleg/all_joints_hjc/command_moveJ std_msgs/Float64MultiArray "data: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]"
 ### MoveIt
@@ -88,3 +90,18 @@ sudo udevadm trigger
 
 检查是否创建成功：
 ll /dev/mcu_rightarm
+
+rosrun joint_state_publisher_gui joint_state_publisher_gui
+rosrun robot_state_publisher robot_state_publisher
+rosrun rviz rviz -d $(rospack find ludan_moveit_config)/launch/moveit.rviz -f Body_Base
+roslaunch ludan_moveit_config move_group.launch 
+roslaunch moveit_movej_bridge bridge.launch 
+roslaunch simple_hybrid_joint_controller multi_bringup.launch
+
+
+rosrun moveit_commander moveit_commander_cmdline.py 
+use right_arm
+current
+x = [12.665999984741211 0.11178779602050781 0.08525943756103516 0.07038211822509766 0.08907413482666016 -12.5]
+plan x
+execute

@@ -8,8 +8,9 @@
 #include <nav_msgs/Odometry.h>
 #include <boost/asio.hpp>
 
+
 extern void serialInit();
-extern void writeSpeed(uint8_t value);
+extern void writeLedcmd(uint8_t mode, uint32_t color, uint8_t brightness, uint8_t speed);
 extern bool readSpeed(uint8_t &mode);
 unsigned char getCrc8(unsigned char *ptr, unsigned short len);
 

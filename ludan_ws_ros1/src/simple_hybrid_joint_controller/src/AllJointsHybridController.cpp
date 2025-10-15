@@ -22,8 +22,8 @@ bool AllJointsHybridController::init(legged::HybridJointInterface* hw, ros::Node
     return false;
   }
 
-  nh.param("default_kp", default_kp_, 100.0);
-  nh.param("default_kd", default_kd_, 2.0);
+  nh.param("default_kp", default_kp_, 20.0);
+  nh.param("default_kd", default_kd_, 1.0);
   nh.param("default_vel", default_vel_, 0.0);
   nh.param("default_ff",  default_ff_,  0.0);
 

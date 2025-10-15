@@ -58,7 +58,7 @@ bool DmHW::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw_nh)
 
 void DmHW::read(const ros::Time & /*time*/, const ros::Duration & /*period*/)
 {
-  // 从下位机读 10 路电机
+  // 从下位机读 14 路电机
   double pos, vel, tau;
   for (int i=0; i< NUM_JOINTS; ++i)
   {
@@ -66,6 +66,7 @@ void DmHW::read(const ros::Time & /*time*/, const ros::Duration & /*period*/)
     jointData_[i].pos_ = pos * directionMotor_[i];
     jointData_[i].vel_ = vel * directionMotor_[i];
     jointData_[i].tau_ = tau * directionMotor_[i];
+    ROS_INFO_STREAM_THROTTLE(0.5, "pos[" << i << "] = " << jointData_[i].pos_);
   }
 
   // IMU 直接用外部 /imu/data
@@ -106,6 +107,7 @@ void DmHW::write(const ros::Time& time, const ros::Duration& /*period*/)
       kp      = cmd_kp_[i];
       kd      = cmd_kd_[i];
       ff      = cmd_tau_[i];
+      ROS_INFO_STREAM("manual");
     }
     else
     {
@@ -114,6 +116,7 @@ void DmHW::write(const ros::Time& time, const ros::Duration& /*period*/)
       kp      = jointData_[i].kp_;
       kd      = jointData_[i].kd_;
       ff      = jointData_[i].ff_;
+      // ROS_INFO_STREAM("not manual!!!!");
     }
 
     // 关节→电机 方向映射
@@ -122,6 +125,12 @@ void DmHW::write(const ros::Time& time, const ros::Duration& /*period*/)
     dmSendcmd_[i].kp_      = kp;
     dmSendcmd_[i].kd_      = kd;
     dmSendcmd_[i].ff_      = ff * directionMotor_[i];
+      // std::lock_guard<std::mutex> lk(cmd_mtx_);
+      // pos_des = cmd_pos_[i];
+      // vel_des = cmd_vel_[i];
+      // kp      = cmd_kp_[i];
+      // kd      = cmd_kd_[i];
+      // ff      = cmd_tau_[i];
   }
 
   // 写入下位机
@@ -140,6 +149,10 @@ void DmHW::write(const ros::Time& time, const ros::Duration& /*period*/)
   a.data.resize(NUM_JOINTS);
   for (int i=0;i<NUM_JOINTS;++i) a.data[i] = dmSendcmd_[i].pos_des_;
   cmd_pos_pub_.publish(a);
+  // std_msgs::Float64MultiArray msg;
+  // msg.data = cmd_pos_;
+  // cmd_pos_pub_.publish(msg);
+  // ROS_INFO_STREAM("cmd_pos = " << a.data[0] << ", " << a.data[1] << ", ...");
 }
 
 bool DmHW::setupJoints()

@@ -1,15 +1,30 @@
 #include "ros/ros.h"
 #include "std_msgs/UInt8.h"
+#include <std_msgs/UInt8MultiArray.h>
 #include "test_led/test_led.h"
 
-uint8_t send_value = '0'; // 默认灯带颜色
-
-void ledCallback(const std_msgs::UInt8::ConstPtr& msg)
+void ledCallback(const std_msgs::UInt8MultiArray::ConstPtr& msg)
 {
-    send_value = msg->data;        // 接收 ROS topic 发布的值
-    writeSpeed(static_cast<uint8_t>(send_value + '0'));        // 发送给 STM32
-    ROS_INFO("recieve data: %d", send_value);
-}
+    if(msg->data.size() < 6) { // 必须至少包含 mode+G+R+B+brightness+speed
+        ROS_WARN("LED command frame too short");
+        return;
+    }
+
+    uint8_t mode = msg->data[0];
+
+    // 颜色 GRB
+    uint32_t color = (msg->data[1] << 16) | (msg->data[2] << 8) | msg->data[3];
+
+    uint8_t brightness = msg->data[4];
+    uint8_t speed = msg->data[5];
+
+    // 发送 LED 命令到 STM32
+    writeLedcmd(mode, color, brightness, speed);
+
+    ROS_INFO("LED cmd: mode=%d, color=0x%06X, brightness=%d, speed=%d", 
+             mode, color, brightness, speed);
+    
+}   
 
 int main(int argc, char **argv)
 {
